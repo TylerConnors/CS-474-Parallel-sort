@@ -23,9 +23,48 @@ namespace ParallelSort
             return inArray;
         }
 
-        // Sort an array
-        public static int[] sortArray(int[] inArray)
+        // Find the median of three numbers
+        public static int medianOfThree(int a, int b, int c)
         {
+            if (a > b && a < c)
+            {
+                return a;
+            }
+            else if (a < b && b > c)
+            {
+                return b;
+            }
+            else
+            {
+                return c;
+            }
+        }
+
+        // Sort an array using quicksort
+        public static int[] sortArray(int[] inArray, int n)
+        {
+            // Check to see if the array size is 1. If it is, end recursion.
+            if (inArray.Length() == 1)
+            {
+                return inArray;
+            }
+
+            Random pivotPicker = new Random();
+
+            // Find a pivot
+            int pivot = 0;
+
+            int ran1, ran2, ran3;
+            ran1 = inArray[pivotPicker.Next(n)];
+            ran2 = inArray[pivotPicker.Next(n)];
+            ran3 = inArray[pivotPicker.Next(n)];
+
+            pivot = medianOfThree(ran1, ran2, ran3);
+
+            // Partition
+
+            // Recursion
+
             return inArray;
         }
 
