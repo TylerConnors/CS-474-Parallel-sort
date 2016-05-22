@@ -44,7 +44,7 @@ namespace ParallelSort
         public static int[] sortArray(int[] inArray, int n)
         {
             // Check to see if the array size is 1. If it is, end recursion.
-            if (inArray.Length() == 1)
+            if (inArray.Length == 1)
             {
                 return inArray;
             }
