@@ -23,55 +23,43 @@ namespace ParallelSort
             return inArray;
         }
 
-        // Find the median of three numbers
-        public static int medianOfThree(int a, int b, int c)
+        // Recursive quicksort function, implementing 3-way partitioning
+        private static void Quicksort(int[] inArray, int left, int right)
         {
-            if (a > b && a < c)
+            if (right <= left) return;
+
+            int pivot = left;
+            int leftIndex = left + 1;
+            int rightIndex = right;
+            int temp;
+
+            int pivotValue = inArray[pivot];
+
+            while (leftIndex <= rightIndex)
             {
-                return a;
+                if (inArray[leftIndex] < pivotValue)
+                {
+                    temp = inArray[pivot];
+                    inArray[pivot] = inArray[leftIndex];
+                    inArray[leftIndex] = temp;
+                    leftIndex++;
+                    pivot++;
+                }
+                else if (inArray[leftIndex] > pivotValue)
+                {
+                    temp = inArray[leftIndex];
+                    inArray[leftIndex] = inArray[rightIndex];
+                    inArray[rightIndex] = temp;
+                    rightIndex--;
+                }
+                else
+                {
+                    leftIndex++;
+                }
             }
-            else if (a < b && b > c)
-            {
-                return b;
-            }
-            else
-            {
-                return c;
-            }
-        }
 
-        // Sort an array using quicksort
-        public static int[] sortArray(int[] inArray, int n)
-        {
-            // Check to see if the array size is 1. If it is, end recursion.
-            if (inArray.Length == 1)
-            {
-                return inArray;
-            }
-
-            Random pivotPicker = new Random();
-
-            // Find a pivot
-            int pivot = 0;
-
-            int ran1, ran2, ran3;
-            ran1 = inArray[pivotPicker.Next(n)];
-            ran2 = inArray[pivotPicker.Next(n)];
-            ran3 = inArray[pivotPicker.Next(n)];
-
-            pivot = medianOfThree(ran1, ran2, ran3);
-
-            // Partition
-
-            // Recursion
-
-            return inArray;
-        }
-
-        // Sort an array using a parallel approach
-        public static int[] sortArrayParallel(int[] inArray)
-        {
-            return inArray;
+            Quicksort(inArray, left, pivot - 1);
+            Quicksort(inArray, rightIndex + 1, right);
         }
 
         static void Main(string[] args)
