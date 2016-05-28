@@ -66,36 +66,80 @@ namespace Quicksorts
         public static int partition(int[] inArray,int n, int pv)
         {
             int p = Environment.ProcessorCount;
+            int[] temp = new int[n];
             Parallel.For(0, p, id =>
             {
                 int chunkSize = (int)Math.Ceiling((double)(n / Environment.ProcessorCount));    //ws
                 int chunkStart = chunkSize * id;                                                //b
                 int chunkEnd = chunkSize * (id + 1);                                            //e
 
+                int[] nSmEql = new int[n];
+                int[] nGtTn = new int[n];
+
                 if (chunkEnd > n)
                 {
                     chunkEnd = n;
                 }
 
-                int lessEqualPivot = chunkStart;                                                //l
-                int morePivot = chunkEnd - 1;                                                   //g
+                int l = chunkStart;                                                //l
+                int g = chunkEnd - 1;                                                   //g
 
-                for (int j = chunkStart; j > chunkEnd; j++)
+                for (int j = 0; j < Math.Log((double)p); j++)
                 {
-                    if (inArray[j] <= pv)
+                if ((id - (2 * j)) >= 0)
+            {
+                nSmEql[id] = nSmEql[id - (2 * j)] + nSmEql[id];
+                nGtTn[id] = nGtTn[id - (2 * j)] + nGtTn[id];
+            }
+                }
+
+
+                for (int i = chunkStart; i < chunkEnd; i++)
+                {
+                    if (inArray[i] <= pv)
                     {
-                        // TODOTODOTODOTODO
-                        lessEqualPivot++;
+                        temp[l] = inArray[i];
+                        l++;
                     }
                     else
                     {
-                        // TODOTODOTODOTODO
-                        morePivot++;
+                        temp[g] = inArray[i];
+                        g--;
+                    }
+                }
+                nSmEql[id] = l - chunkStart;
+                nGtTn[id] = chunkEnd - g;
+
+                int count, countb;
+
+                if (id <> 0)  //don't know what this is
+                {
+                    count = nSmEql[id - 1];
+                    countb = nGtTn[id - 1];
+                }
+                else
+                {
+                    count = 0;
+                    countb = 0;
+                }
+                for (int i = chunkStart; i < chunkEnd; i++)
+                {
+                    if (temp[i] <= pv)
+                    {
+                        inArray[count] = temp[i];
+                        count = count + 1;
+                    }
+                    else
+                    {
+                        inArray[chunkEnd - countb] = temp[i];
+                        countb = countb - 1;
                     }
                 }
 
+                return nSmEql[p - 1] ;
+
             });
-            return 0; //FIX THIS!
+             //FIX THIS!
         }
 
         public static void parallelSort(int[] inArray)
