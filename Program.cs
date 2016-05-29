@@ -112,7 +112,7 @@ namespace Quicksorts
 
                 int count, countb;
 
-                if (id <> 0)  //don't know what this is
+                if (id != 0)  
                 {
                     count = nSmEql[id - 1];
                     countb = nGtTn[id - 1];
