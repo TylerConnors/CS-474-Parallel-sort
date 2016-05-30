@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,10 @@ namespace Quicksorts
     {
         public static int SIZE = 100;
         public static int[] randArray = new int[SIZE];
-        
+        public static int processorCount = Environment.ProcessorCount;
+        public static Stack partitions = new Stack();
+        public static Stack chunks = new Stack();
+
         // Sequentially prints the contents of an array
         public static void printArray(int[] inArray)
         {
@@ -28,11 +32,11 @@ namespace Quicksorts
             {
                 inArray[i] = rand.Next(100);
             }
-
             return inArray;
         }
 
-        public static int[] populateArray(int[] inArray)// creates an array of unique numbers from 0 to n-1
+        // creates an array of unique numbers from 0 to n-1
+        public static int[] populateArray(int[] inArray)
         {
             int chunk = ((SIZE - 1) / Environment.ProcessorCount); //ensures best speed for computer
             Parallel.For(0, SIZE / chunk, j =>
@@ -45,7 +49,7 @@ namespace Quicksorts
                 }
             });
 
-            //shuffles the list up
+            //shuffles the list
             Random rnd = new Random();
             int temp = 0;
             int temp2 = 0;
@@ -61,36 +65,33 @@ namespace Quicksorts
             return inArray;
         }
 
-        
-
-        public static int partition(int[] inArray,int n, int pv)
+        public static int partition(int[] inArray, int n, int pv)
         {
-            int p = Environment.ProcessorCount;
             int[] temp = new int[n];
-            Parallel.For(0, p, id =>
-            {
-                int chunkSize = (int)Math.Ceiling((double)(n / Environment.ProcessorCount));    //ws
-                int chunkStart = chunkSize * id;                                                //b
-                int chunkEnd = chunkSize * (id + 1);                                            //e
+            int[] nSmEql = new int[n];
+            int[] nGtTn = new int[n];
 
-                int[] nSmEql = new int[n];
-                int[] nGtTn = new int[n];
+            Parallel.For(0, processorCount, processorID =>
+            {
+                int chunkSize = (int)Math.Ceiling((double)(n / processorCount));
+                int chunkStart = chunkSize * processorID;
+                int chunkEnd = chunkSize * (processorID + 1);
 
                 if (chunkEnd > n)
                 {
                     chunkEnd = n;
                 }
 
-                int l = chunkStart;                                                //l
-                int g = chunkEnd - 1;                                                   //g
+                int lessThanPivotIndex = chunkStart;
+                int greaterThanPivotIndex = chunkEnd - 1;
 
-                for (int j = 0; j < Math.Log((double)p); j++)
+                for (int j = 0; j < Math.Ceiling(Math.Log((double)processorCount)); j++)
                 {
-                if ((id - (2 * j)) >= 0)
-            {
-                nSmEql[id] = nSmEql[id - (2 * j)] + nSmEql[id];
-                nGtTn[id] = nGtTn[id - (2 * j)] + nGtTn[id];
-            }
+                    if ((processorID - (Math.Pow(2, j))) >= 0)
+                    {
+                        nSmEql[processorID] = nSmEql[processorID - (2 * j)] + nSmEql[processorID];
+                        nGtTn[processorID] = nGtTn[processorID - (2 * j)] + nGtTn[processorID];
+                    }
                 }
 
 
@@ -98,24 +99,24 @@ namespace Quicksorts
                 {
                     if (inArray[i] <= pv)
                     {
-                        temp[l] = inArray[i];
-                        l++;
+                        temp[lessThanPivotIndex] = inArray[i];
+                        lessThanPivotIndex++;
                     }
                     else
                     {
-                        temp[g] = inArray[i];
-                        g--;
+                        temp[greaterThanPivotIndex] = inArray[i];
+                        greaterThanPivotIndex--;
                     }
                 }
-                nSmEql[id] = l - chunkStart;
-                nGtTn[id] = chunkEnd - g;
+                nSmEql[processorID] = lessThanPivotIndex - chunkStart;
+                nGtTn[processorID] = chunkEnd - greaterThanPivotIndex;
 
                 int count, countb;
 
-                if (id != 0)  
+                if (processorID != 0)
                 {
-                    count = nSmEql[id - 1];
-                    countb = nGtTn[id - 1];
+                    count = nSmEql[processorID - 1];
+                    countb = nGtTn[processorID - 1];
                 }
                 else
                 {
@@ -135,31 +136,36 @@ namespace Quicksorts
                         countb = countb - 1;
                     }
                 }
-
-                return nSmEql[p - 1] ;
-
             });
-             //FIX THIS!
+
+            return nSmEql[processorCount - 1];
+        }
+
+        public static void doPSort(int[] inArray, int endSortIndex, int startSortIndex, int p)
+        {
+            int pivot = inArray[(startSortIndex + endSortIndex) / 2];
+
+            if (startSortIndex + endSortIndex < 15)
+            {
+                int m = partition(inArray, (endSortIndex - startSortIndex), pivot);  // the first part was shown as inArray[b] but than it would be an int, if there are errors look into this
+                int pc = ((p * (m - startSortIndex)) / (endSortIndex - startSortIndex));
+                doPSort(inArray, startSortIndex, m, pc);
+                doPSort(inArray, m, endSortIndex, p - pc);
+            }
+            else
+            {
+                insertionSort(inArray, startSortIndex, endSortIndex);
+            }
         }
 
         public static void parallelSort(int[] inArray)
         {
             //don't know the values but it needs the correct ones, replace the 0's
-            doPSort(inArray, 0, 0, 0);
+            doPSort(inArray, inArray.Length, 0, 0);
         }
-
-        public static void doPSort (int[] inArray,int e,int b, int p)
-        {
-            int pv = inArray[(b + e) / 2];
-            int m = partition(inArray, (e - b), pv);  // the first part was shown as inArray[b] but than it would be an int, if there are errors look into this
-            int pc = ((p * (m -b)) / (e-b));
-            doPSort(inArray, b, m, pc);
-            doPSort(inArray, m, e, p - pc);
-        }
-
 
         // Insertion sort function
-        public static int[] insertionSort(int[] inArray, int left, int right)
+        public static void insertionSort(int[] inArray, int left, int right)
         {
             int temp;
             for (int i = left; i < right; i++)
@@ -171,16 +177,13 @@ namespace Quicksorts
                     inArray[j - 1] = temp;
                 }
             }
-            return inArray;
         }
-   
 
         // Entry function for the quicksort
         public static void quicksort(int[] inArray)
         {
             Quicksort(inArray, 0, (inArray.Length - 1));
         }
-
 
         // Recursive quicksort function, implementing 3-way partitioning
         private static void Quicksort(int[] inArray, int left, int right)
@@ -220,16 +223,12 @@ namespace Quicksorts
             Quicksort(inArray, left, pivot - 1);
             Quicksort(inArray, rightIndex + 1, right);
         }
-        
+
         static void Main(string[] args)
         {
-            if (SIZE < 10000)
-                populateArray(randArray);
-            else
-                fillArray(randArray);
-            quicksort(randArray);
+            fillArray(randArray);
+            insertionSort(randArray, 0, randArray.Length);
             printArray(randArray);
         }
     }
 }
-
