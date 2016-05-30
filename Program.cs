@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.ComponentModel;
 namespace Quicksorts
 {
     class Program
@@ -14,6 +14,8 @@ namespace Quicksorts
         public static int processorCount = Environment.ProcessorCount;
         public static Stack partitions = new Stack();
         public static Stack chunks = new Stack();
+        public static int[] randArray2 = new int[SIZE];
+        public static int[] randArray3 = new int[SIZE];
 
         // Sequentially prints the contents of an array
         public static void printArray(int[] inArray)
@@ -38,7 +40,7 @@ namespace Quicksorts
         // creates an array of unique numbers from 0 to n-1
         public static int[] populateArray(int[] inArray)
         {
-            int chunk = ((SIZE - 1) / Environment.ProcessorCount); //ensures best speed for computer
+            int chunk = ((SIZE) / Environment.ProcessorCount); //ensures best speed for computer
             Parallel.For(0, SIZE / chunk, j =>
             {
                 int start = j * chunk;     // Inclusive start point for chunk
@@ -160,8 +162,7 @@ namespace Quicksorts
 
         public static void parallelSort(int[] inArray)
         {
-            //don't know the values but it needs the correct ones, replace the 0's
-            doPSort(inArray, inArray.Length, 0, 0);
+            doPSort(inArray, inArray.Length, 0, processorCount);
         }
 
         // Insertion sort function
@@ -226,9 +227,25 @@ namespace Quicksorts
 
         static void Main(string[] args)
         {
-            fillArray(randArray);
-            insertionSort(randArray, 0, randArray.Length);
+            Console.WriteLine("Creating arrays");
+            if (SIZE < 10000)
+                populateArray(randArray);
+            else
+                fillArray(randArray);
+            Array.Copy(randArray, randArray2, SIZE);
+            Array.Copy(randArray, randArray3, SIZE);
+            Console.WriteLine("Finished creating arrays");
+
+
+            //insertionSort(randArray, 0, randArray.Length);
+            parallelSort(randArray);
+            Console.WriteLine("Press any key to Print array.");
+            Console.ReadKey();
             printArray(randArray);
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
         }
+        
     }
 }
+
