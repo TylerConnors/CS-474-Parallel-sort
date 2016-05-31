@@ -255,11 +255,6 @@ namespace Quicksorts
 
         static void Main(string[] args)
         {
-            //randArray = new int[200];
-            //sequentialArrayFill(randArray);
-            //shuffleArray(randArray);
-            //parallelSort(randArray);
-            //printArray(randArray);
             int SIZE = 0;
             Console.WriteLine("Input the number of elements in the array");
             SIZE = Convert.ToInt32(Console.ReadLine());
