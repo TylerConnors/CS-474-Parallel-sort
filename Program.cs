@@ -10,43 +10,8 @@ namespace Quicksorts
 {
     class Program
     {
-        public static int SIZE;
         public static int[] randArray;
         public static int processorCount = Environment.ProcessorCount;
-        public static Stack partitions = new Stack();
-        public static Stack chunks = new Stack();
-        public static int[] randArray2;
-        public static int[] randArray3;
-
-
-        // Sequentially prints the contents of an array up to the first 500 
-        public static void printArray(int[] inArray)
-        {
-            int temp = 500;
-
-            if (inArray.Length < temp)
-            {
-                temp = inArray.Length;
-            }
-
-            for (int i = 0; i < temp; i++)
-            {
-                Console.WriteLine(inArray[i]);
-            }
-
-
-        }
-
-        // Fill an array with random numbers
-        public static int[] fillArray(int[] inArray)
-        {
-            Random rand = new Random();
-            for (int i = 0; i < inArray.Length; i++)
-            {
-                inArray[i] = rand.Next(inArray.Length);
-            }
-            return inArray;
-        }
 
         // Partition an array with a pivot
         public static int partition(int[] array, double startIndex, double endIndex, int pivot)
@@ -83,17 +48,6 @@ namespace Quicksorts
                 nGrtTha[id] = (int)(endOfSegment - greaterThanPivot);
             });
 
-            Console.WriteLine("nSmlEql[0]: " + nSmlEql[0]);
-            Console.WriteLine("nSmlEql[1]: " + nSmlEql[1]);
-            Console.WriteLine("nSmlEql[2]: " + nSmlEql[2]);
-            Console.WriteLine("nSmlEql[3]: " + nSmlEql[3]);
-
-            Console.WriteLine("nGrtTha[0]: " + nGrtTha[0]);
-            Console.WriteLine("nGrtTha[0]: " + nGrtTha[1]);
-            Console.WriteLine("nGrtTha[0]: " + nGrtTha[2]);
-            Console.WriteLine("nGrtTha[0]: " + nGrtTha[3]);
-            Console.WriteLine(" ");
-
             for (int id = 0; id < processorCount; id++)
             {
                 for (int j = 0; j < (Math.Log(processorCount) - 1); j++)
@@ -106,17 +60,6 @@ namespace Quicksorts
                 }
             }
 
-            Console.WriteLine("nSmlEql[0]: " + nSmlEql[0]);
-            Console.WriteLine("nSmlEql[1]: " + nSmlEql[1]);
-            Console.WriteLine("nSmlEql[2]: " + nSmlEql[2]);
-            Console.WriteLine("nSmlEql[3]: " + nSmlEql[3]);
-
-            Console.WriteLine("nGrtTha[0]: " + nGrtTha[0]);
-            Console.WriteLine("nGrtTha[1]: " + nGrtTha[1]);
-            Console.WriteLine("nGrtTha[2]: " + nGrtTha[2]);
-            Console.WriteLine("nGrtTha[3]: " + nGrtTha[3]);
-            Console.WriteLine(" ");
-
             Parallel.For(0, processorCount, id =>
             {
                 int count;
@@ -125,92 +68,83 @@ namespace Quicksorts
                 if(id != 0)
                 {
                     count = nSmlEql[id - 1];
-                    countb = nGrtTha[id - 1] + 1;
+                    countb = nGrtTha[id] - 1;
                 }
                 else
                 {
                     count = 0;
-                    countb = 0;
+                    countb = nGrtTha[id] - 1;
                 }
-
-                Console.WriteLine("id: " + id + ". Count: " + count + ". Countb " + countb);
-
                 double beginningOfSegment = widthOfSegment * id;
                 double endOfSegment = widthOfSegment * (id + 1);
 
-                for(int i = (int)beginningOfSegment; i < endOfSegment; i++)
+                for(int i = (int)beginningOfSegment; i < (endOfSegment); i++)
                 {
                     if (temp[i] <= pivot)
                     {
-                        Console.WriteLine("id: " + id)
                         array[count] = temp[i];
                         count = count + 1;
                     }
                     else
                     {
-
+                        array[((int)endIndex) - countb] = temp[i];
+                        countb--;
                     }
                 }
             });
 
-            return 0;
-        }
+            Console.WriteLine("Pivot: " + pivot);
+            printArray(array);
 
-            Parallel.For(0, processorCount, id =>
-            {
-                double beginningOfSegment = widthOfSegment * id;
-                double endOfSegment = widthOfSegment * (id + 1);
-
-                int count;
-                int countb;
-
-                if (id != 0)
-                {
-                    count = nSmlEql[id - 1];
-                    countb = nGrtTha[id - 1];
-                }
-                else
-                {
-                    count = 0;
-                    countb = 0;
-                }
-                for (int i = (int)beginningOfSegment; i < endOfSegment; i++)
-                {
-                    if (temp[i] <= pivot)
-                    {
-                        array[count] = temp[i];
-                        count++;
-                    }
-                    else
-                    {
-                        array[(int)endOfSegment - countb] = temp[i];
-                        countb = countb++;
-                    }
-                }
-            });
             return nSmlEql[processorCount - 1];
         }
 
-        public static void doPSort(int[] inArray, int endSortIndex, int startSortIndex, int p)
+        public static void doPSort(int[] inArray, int startSortIndex, int endSortIndex, int p)
         {
             int pivot = inArray[(startSortIndex + endSortIndex) / 2];
-
-            if (endSortIndex - startSortIndex > 15)
+            if (endSortIndex - startSortIndex > 8)
             {
-            int m = partition(inArray, (endSortIndex - startSortIndex), pivot);  // the first part was shown as inArray[b] but than it would be an int, if there are errors look into this
-            int pc = ((p * (m - startSortIndex)) / (endSortIndex - startSortIndex));
-            doPSort(inArray, startSortIndex, m, pc);
-            doPSort(inArray, m, endSortIndex, p - pc);
+                int m = partition(inArray, startSortIndex, endSortIndex, pivot);  // the first part was shown as inArray[b] but than it would be an int, if there are errors look into this
+                int pc = ((p * (m - startSortIndex)) / (endSortIndex - startSortIndex));
+                //doPSort(inArray, startSortIndex, m, pc);
+                //doPSort(inArray, m, endSortIndex, p - pc);
             }
-            else
-            {
-                insertionSort(inArray, startSortIndex, endSortIndex);
-            }
+            //else
+            //{
+            //   insertionSort(inArray, startSortIndex, endSortIndex);
+            //}
         }
 
         public static void parallelSort(int[] inArray)
         {
-            doPSort(inArray, inArray.Length, 0, processorCount);
+            doPSort(inArray, 0, inArray.Length, processorCount);
+        }
+
+        // Sequentially prints the contents of an array up to the first 500 
+        public static void printArray(int[] inArray)
+        {
+            int temp = 500;
+
+            if (inArray.Length < temp)
+            {
+                temp = inArray.Length;
+            }
+
+            for (int i = 0; i < temp; i++)
+            {
+                Console.WriteLine(inArray[i]);
+            }
+        }
+
+        // Fill an array with random numbers
+        public static int[] fillArray(int[] inArray)
+        {
+            Random rand = new Random();
+            for (int i = 0; i < inArray.Length; i++)
+            {
+                inArray[i] = rand.Next(100);
+            }
+            return inArray;
         }
 
         // Insertion sort function
@@ -239,7 +173,7 @@ namespace Quicksorts
         {
             if (right <= left) return;
 
-            int pivot = left;
+            int pivot = inArray[left];
             int leftIndex = left + 1;
             int rightIndex = right;
             int temp;
@@ -275,52 +209,9 @@ namespace Quicksorts
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Input the number of elements in the array");
-            SIZE = Convert.ToInt32(Console.ReadLine());
-
-            randArray = new int[SIZE];
-            randArray2 = new int[SIZE];
-            randArray3 = new int[SIZE];
-
-            Console.WriteLine("Creating arrays");
+            randArray = new int[40];
             fillArray(randArray);
-            Array.Copy(randArray, randArray2, SIZE);
-            Array.Copy(randArray, randArray3, SIZE);
-            Console.WriteLine("Finished creating arrays");
-
-            Stopwatch stopwatch = new Stopwatch();
-
-            Console.WriteLine("Insertion sort start");
-            stopwatch.Reset();
-            stopwatch.Start();
-            insertionSort(randArray, 0, randArray.Length);
-            stopwatch.Stop();
-            Console.WriteLine("Time of Insertion Sort: {0}", stopwatch.ElapsedMilliseconds);
-
-            Console.WriteLine("Quicksort start");
-            stopwatch.Reset();
-            stopwatch.Start();
-            quicksort(randArray2);
-            stopwatch.Stop();
-            Console.WriteLine("Time of QuickSort: {0}", stopwatch.ElapsedMilliseconds);
-
-            Console.WriteLine("Parallel sort start");
-            stopwatch.Reset();
-            stopwatch.Start();
-            parallelSort(randArray3);
-            stopwatch.Stop();
-            Console.WriteLine("Time of Parallel Sort: {0}", stopwatch.ElapsedMilliseconds);
-
-
-            Console.WriteLine("Press any key to print parallel array.");
-            Console.ReadKey();
-            printArray(randArray3);
-
-            Console.WriteLine("Press any key to exit.");
-            Console.ReadKey();
+            parallelSort(randArray);
         }
-
     }
 }
-
-
