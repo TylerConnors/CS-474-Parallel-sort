@@ -106,7 +106,12 @@ namespace Quicksorts
         // Parallel quicksort with median-of-three pivot-picking to avoid endless recursion
         public static void doPSort(int[] inArray, int startSortIndex, int endSortIndex)
         {
-            if (endSortIndex - startSortIndex > 8)
+            int temp = inArray.Length / 128;
+            if (temp < 2)
+                temp = 2;
+            if (temp > 1000)
+                temp = 1000;
+            if (endSortIndex - startSortIndex > temp)
             {
                 int pivot = medianOfThree(inArray[startSortIndex], inArray[endSortIndex - 1], inArray[(startSortIndex + endSortIndex) / 2]);
                 int m = partition(inArray, startSortIndex, endSortIndex, pivot);
@@ -271,14 +276,15 @@ namespace Quicksorts
             Console.WriteLine("Finished creating arrays");
 
             Stopwatch stopwatch = new Stopwatch();
-
-            Console.WriteLine("Insertion sort start");
-            stopwatch.Reset();
-            stopwatch.Start();
-            insertionSort(randArray, 0, randArray.Length);
-            stopwatch.Stop();
-            Console.WriteLine("Time of Insertion Sort: {0}", stopwatch.ElapsedMilliseconds);
-
+            if (SIZE <= 10000)
+            {
+                Console.WriteLine("Insertion sort start");
+                stopwatch.Reset();
+                stopwatch.Start();
+                insertionSort(randArray, 0, randArray.Length);
+                stopwatch.Stop();
+                Console.WriteLine("Time of Insertion Sort: {0}", stopwatch.ElapsedMilliseconds);
+            }
             Console.WriteLine("Quicksort start");
             stopwatch.Reset();
             stopwatch.Start();
