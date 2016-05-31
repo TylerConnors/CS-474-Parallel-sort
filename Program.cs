@@ -48,80 +48,84 @@ namespace Quicksorts
             return inArray;
         }
 
-        public static int partition(int[] inArray, int n, int pv)
+        public static int partition(int[] array, double startIndex, double endIndex, int pivot)
         {
-            int[] temp = new int[n];
-            int[] nSmEql = new int[n];
-            int[] nGtTn = new int[n];
+            int[] temp = new int[array.Length];
+            int[] nSmlEql = new int[processorCount];
+            int[] nGrtTha = new int[processorCount];
+            double widthOfSegment = Math.Ceiling((endIndex - startIndex) / processorCount);
 
-            Parallel.For(0, processorCount, processorID =>
+            // Categorize the values in each segment
+            Parallel.For(0, processorCount, id =>
             {
-                int chunkSize = (int)Math.Ceiling((double)(n / processorCount));
-                int chunkStart = chunkSize * processorID;
-                int chunkEnd = chunkSize * (processorID + 1);
-
-                if (chunkEnd > n)
+                double beginningOfSegment = startIndex + widthOfSegment * id;
+                double endOfSegment = startIndex + widthOfSegment * (id + 1);
+                if (endOfSegment > endIndex)
                 {
-                    chunkEnd = n;
+                    endOfSegment = endIndex;
                 }
-
-                int lessThanPivotIndex = chunkStart;
-                int greaterThanPivotIndex = chunkEnd - 1;
-
-                for (int j = 0; j < Math.Ceiling(Math.Log((double)processorCount)); j++)
+                double lessThanPivot = beginningOfSegment;
+                double greaterThanPivot = endOfSegment - 1;
+                for (int i = (int)beginningOfSegment; i < endOfSegment; i++)
                 {
-                    if ((processorID - (Math.Pow(2, j))) >= 0)
+                    if (array[i] >= pivot)
                     {
-                        nSmEql[processorID] = nSmEql[processorID - (2 * j)] + nSmEql[processorID];
-                        nGtTn[processorID] = nGtTn[processorID - (2 * j)] + nGtTn[processorID];
-                    }
-                }
-
-
-                for (int i = chunkStart; i < chunkEnd; i++)
-                {
-                    if (inArray[i] <= pv)
-                    {
-                        temp[lessThanPivotIndex] = inArray[i];
-                        lessThanPivotIndex++;
+                        temp[(int)lessThanPivot] = array[i];
+                        lessThanPivot++;
                     }
                     else
                     {
-                        temp[greaterThanPivotIndex] = inArray[i];
-                        greaterThanPivotIndex--;
+                        temp[(int)greaterThanPivot] = array[i];
+                        greaterThanPivot--;
+                    }
+                    nSmlEql[id] = (int)(lessThanPivot - beginningOfSegment);
+                    nSmlEql[id] = (int)(endIndex - greaterThanPivot);
+                }
+            });
+            for (int id = 0; id < processorCount; id++)
+            {
+                for(int j = 0; j < Math.Ceiling(Math.Log(processorCount) - 1); j++)
+                {
+                    if (id - Math.Pow(2, j) >= 0)
+                    {
+                        nSmlEql[id] = nSmlEql[id - (int)Math.Pow(2, j)] + nSmlEql[id];
+                        nGrtTha[id] = nGrtTha[id - (int)Math.Pow(2, j)] + nSmlEql[id];
                     }
                 }
-                nSmEql[processorID] = lessThanPivotIndex - chunkStart;
-                nGtTn[processorID] = chunkEnd - greaterThanPivotIndex;
+            }
+            Parallel.For(0, processorCount, id =>
+            {
+                double beginningOfSegment = startIndex + widthOfSegment * id;
+                double endOfSegment = startIndex + widthOfSegment * (id + 1);
 
-                int count, countb;
+                int count;
+                int countb;
 
-                if (processorID != 0)
+                if (id != 0)
                 {
-                    count = nSmEql[processorID - 1];
-                    countb = nGtTn[processorID - 1];
+                    count = nSmlEql[id - 1];
+                    countb = nGrtTha[id - 1];
                 }
                 else
                 {
                     count = 0;
                     countb = 0;
                 }
-                for (int i = chunkStart; i < chunkEnd; i++)
+                for (int i = (int)beginningOfSegment; i < endOfSegment; i++)
                 {
-                    if (temp[i] <= pv)
+                    if (temp[i] <= pivot)
                     {
-                        inArray[count] = temp[i];
-                        count = count + 1;
+                        array[count] = temp[i];
+                        count++;
                     }
                     else
                     {
-                        inArray[chunkEnd - countb] = temp[i];
-                        countb = countb - 1;
+                        array[(int)endOfSegment - countb] = temp[i];
+                        countb = countb++;
                     }
                 }
             });
-
-            return nSmEql[processorCount - 1];
+            return nSmlEql[processorCount - 1];
         }
 
         public static void doPSort(int[] inArray, int endSortIndex, int startSortIndex, int p)
