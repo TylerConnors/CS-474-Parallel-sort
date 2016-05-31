@@ -17,14 +17,14 @@ namespace Quicksorts
         public static Stack chunks = new Stack();
         public static int[] randArray2;
         public static int[] randArray3;
-        
+
 
         // Sequentially prints the contents of an array up to the first 500 
         public static void printArray(int[] inArray)
         {
             int temp = 500;
 
-            if(inArray.Length < temp)
+            if (inArray.Length < temp)
             {
                 temp = inArray.Length;
             }
@@ -48,21 +48,21 @@ namespace Quicksorts
             return inArray;
         }
 
-        public static int partition(int[] array, double startIndex, double endIndex, int pivot)
+        public static int partition(int[] array, double n, int pivot)
         {
             int[] temp = new int[array.Length];
             int[] nSmlEql = new int[processorCount];
             int[] nGrtTha = new int[processorCount];
-            double widthOfSegment = Math.Ceiling((endIndex - startIndex) / processorCount);
+            double widthOfSegment = n/ processorCount;
 
             // Categorize the values in each segment
             Parallel.For(0, processorCount, id =>
             {
-                double beginningOfSegment = startIndex + widthOfSegment * id;
-                double endOfSegment = startIndex + widthOfSegment * (id + 1);
-                if (endOfSegment > endIndex)
+                double beginningOfSegment = widthOfSegment * id;
+                double endOfSegment = widthOfSegment * (id + 1);
+                if (endOfSegment > n)
                 {
-                    endOfSegment = endIndex;
+                    endOfSegment = n;
                 }
                 double lessThanPivot = beginningOfSegment;
                 double greaterThanPivot = endOfSegment - 1;
@@ -79,12 +79,12 @@ namespace Quicksorts
                         greaterThanPivot--;
                     }
                     nSmlEql[id] = (int)(lessThanPivot - beginningOfSegment);
-                    nSmlEql[id] = (int)(endIndex - greaterThanPivot);
+                    nSmlEql[id] = (int)(endOfSegment - greaterThanPivot);
                 }
             });
             for (int id = 0; id < processorCount; id++)
             {
-                for(int j = 0; j < Math.Ceiling(Math.Log(processorCount) - 1); j++)
+                for (int j = 0; j < Math.Ceiling(Math.Log(processorCount) - 1); j++)
                 {
                     if (id - Math.Pow(2, j) >= 0)
                     {
@@ -93,10 +93,11 @@ namespace Quicksorts
                     }
                 }
             }
+
             Parallel.For(0, processorCount, id =>
             {
-                double beginningOfSegment = startIndex + widthOfSegment * id;
-                double endOfSegment = startIndex + widthOfSegment * (id + 1);
+                double beginningOfSegment = widthOfSegment * id;
+                double endOfSegment = widthOfSegment * (id + 1);
 
                 int count;
                 int countb;
@@ -132,12 +133,12 @@ namespace Quicksorts
         {
             int pivot = inArray[(startSortIndex + endSortIndex) / 2];
 
-           // if (startSortIndex + endSortIndex < 15)
+            // if (startSortIndex + endSortIndex < 15)
             //{
-                int m = partition(inArray, (endSortIndex - startSortIndex), pivot);  // the first part was shown as inArray[b] but than it would be an int, if there are errors look into this
-                int pc = ((p * (m - startSortIndex)) / (endSortIndex - startSortIndex));
-                doPSort(inArray, startSortIndex, m, pc);
-                doPSort(inArray, m, endSortIndex, p - pc);
+            int m = partition(inArray, (endSortIndex - startSortIndex), pivot);  // the first part was shown as inArray[b] but than it would be an int, if there are errors look into this
+            int pc = ((p * (m - startSortIndex)) / (endSortIndex - startSortIndex));
+            doPSort(inArray, startSortIndex, m, pc);
+            doPSort(inArray, m, endSortIndex, p - pc);
             //}
             //else
             //{
@@ -211,7 +212,7 @@ namespace Quicksorts
         }
 
         static void Main(string[] args)
-        { 
+        {
             Console.WriteLine("Input the number of elements in the array");
             SIZE = Convert.ToInt32(Console.ReadLine());
 
@@ -256,7 +257,8 @@ namespace Quicksorts
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
         }
-        
+
     }
 }
+
 
