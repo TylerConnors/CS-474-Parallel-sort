@@ -133,17 +133,17 @@ namespace Quicksorts
         {
             int pivot = inArray[(startSortIndex + endSortIndex) / 2];
 
-            // if (startSortIndex + endSortIndex < 15)
-            //{
+            if (endSortIndex - startSortIndex > 15)
+            {
             int m = partition(inArray, (endSortIndex - startSortIndex), pivot);  // the first part was shown as inArray[b] but than it would be an int, if there are errors look into this
             int pc = ((p * (m - startSortIndex)) / (endSortIndex - startSortIndex));
             doPSort(inArray, startSortIndex, m, pc);
             doPSort(inArray, m, endSortIndex, p - pc);
-            //}
-            //else
-            //{
-            //    insertionSort(inArray, startSortIndex, endSortIndex);
-            //}
+            }
+            else
+            {
+                insertionSort(inArray, startSortIndex, endSortIndex);
+            }
         }
 
         public static void parallelSort(int[] inArray)
