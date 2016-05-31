@@ -48,27 +48,27 @@ namespace Quicksorts
             return inArray;
         }
 
-        public static int partition(int[] array, double n, int pivot)
+        // Partition an array with a pivot
+        public static int partition(int[] array, double startIndex, double endIndex, int pivot)
         {
             int[] temp = new int[array.Length];
             int[] nSmlEql = new int[processorCount];
             int[] nGrtTha = new int[processorCount];
-            double widthOfSegment = n/ processorCount;
-
+            double widthOfSegment = Math.Ceiling ((endIndex - startIndex) / processorCount);
             // Categorize the values in each segment
             Parallel.For(0, processorCount, id =>
             {
                 double beginningOfSegment = widthOfSegment * id;
                 double endOfSegment = widthOfSegment * (id + 1);
-                if (endOfSegment > n)
+                if (endOfSegment > endIndex)
                 {
-                    endOfSegment = n;
+                    endOfSegment = endIndex;
                 }
                 double lessThanPivot = beginningOfSegment;
                 double greaterThanPivot = endOfSegment - 1;
-                for (int i = (int)beginningOfSegment; i < endOfSegment; i++)
+                for (int i = (int)beginningOfSegment; i < (endOfSegment - 1); i++)
                 {
-                    if (array[i] >= pivot)
+                    if (array[i] <= pivot)
                     {
                         temp[(int)lessThanPivot] = array[i];
                         lessThanPivot++;
@@ -78,21 +78,83 @@ namespace Quicksorts
                         temp[(int)greaterThanPivot] = array[i];
                         greaterThanPivot--;
                     }
-                    nSmlEql[id] = (int)(lessThanPivot - beginningOfSegment);
-                    nSmlEql[id] = (int)(endOfSegment - greaterThanPivot);
                 }
+                nSmlEql[id] = (int)(lessThanPivot - beginningOfSegment);
+                nGrtTha[id] = (int)(endOfSegment - greaterThanPivot);
             });
+
+            Console.WriteLine("nSmlEql[0]: " + nSmlEql[0]);
+            Console.WriteLine("nSmlEql[1]: " + nSmlEql[1]);
+            Console.WriteLine("nSmlEql[2]: " + nSmlEql[2]);
+            Console.WriteLine("nSmlEql[3]: " + nSmlEql[3]);
+
+            Console.WriteLine("nGrtTha[0]: " + nGrtTha[0]);
+            Console.WriteLine("nGrtTha[0]: " + nGrtTha[1]);
+            Console.WriteLine("nGrtTha[0]: " + nGrtTha[2]);
+            Console.WriteLine("nGrtTha[0]: " + nGrtTha[3]);
+            Console.WriteLine(" ");
+
             for (int id = 0; id < processorCount; id++)
             {
-                for (int j = 0; j < Math.Ceiling(Math.Log(processorCount) - 1); j++)
+                for (int j = 0; j < (Math.Log(processorCount) - 1); j++)
                 {
                     if (id - Math.Pow(2, j) >= 0)
                     {
-                        nSmlEql[id] = nSmlEql[id - (int)Math.Pow(2, j)] + nSmlEql[id];
-                        nGrtTha[id] = nGrtTha[id - (int)Math.Pow(2, j)] + nSmlEql[id];
+                        nSmlEql[id] = nSmlEql[id - (int)(Math.Pow(2, j))] + nSmlEql[id];
+                        nGrtTha[id] = nGrtTha[id - (int)(Math.Pow(2, j))] + nGrtTha[id];
                     }
                 }
             }
+
+            Console.WriteLine("nSmlEql[0]: " + nSmlEql[0]);
+            Console.WriteLine("nSmlEql[1]: " + nSmlEql[1]);
+            Console.WriteLine("nSmlEql[2]: " + nSmlEql[2]);
+            Console.WriteLine("nSmlEql[3]: " + nSmlEql[3]);
+
+            Console.WriteLine("nGrtTha[0]: " + nGrtTha[0]);
+            Console.WriteLine("nGrtTha[1]: " + nGrtTha[1]);
+            Console.WriteLine("nGrtTha[2]: " + nGrtTha[2]);
+            Console.WriteLine("nGrtTha[3]: " + nGrtTha[3]);
+            Console.WriteLine(" ");
+
+            Parallel.For(0, processorCount, id =>
+            {
+                int count;
+                int countb;
+
+                if(id != 0)
+                {
+                    count = nSmlEql[id - 1];
+                    countb = nGrtTha[id - 1] + 1;
+                }
+                else
+                {
+                    count = 0;
+                    countb = 0;
+                }
+
+                Console.WriteLine("id: " + id + ". Count: " + count + ". Countb " + countb);
+
+                double beginningOfSegment = widthOfSegment * id;
+                double endOfSegment = widthOfSegment * (id + 1);
+
+                for(int i = (int)beginningOfSegment; i < endOfSegment; i++)
+                {
+                    if (temp[i] <= pivot)
+                    {
+                        Console.WriteLine("id: " + id)
+                        array[count] = temp[i];
+                        count = count + 1;
+                    }
+                    else
+                    {
+
+                    }
+                }
+            });
+
+            return 0;
+        }
 
             Parallel.For(0, processorCount, id =>
             {
