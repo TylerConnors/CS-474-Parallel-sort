@@ -11,6 +11,9 @@ namespace Quicksorts
     class Program
     {
         public static int[] randArray;
+        public static int[] randArray2;
+        public static int[] randArray3;
+
         public static int processorCount = Environment.ProcessorCount;
 
         // Partition an array with a pivot
@@ -97,7 +100,6 @@ namespace Quicksorts
                     }
                 }
             });
-            printArray(array);
             return ((int)startIndex + nSmlEql[processorCount - 1]);
         }
 
@@ -113,7 +115,7 @@ namespace Quicksorts
             }
             else
             {
-               insertionSort(inArray, startSortIndex, endSortIndex);
+                insertionSort(inArray, startSortIndex, endSortIndex);
             }
         }
 
@@ -191,11 +193,6 @@ namespace Quicksorts
             }
         }
 
-        // Entry function for the quicksort
-        public static void quicksort(int[] inArray)
-        {
-            Quicksort(inArray, 0, (inArray.Length - 1));
-        }
 
         // Shuffle function for an array, based on the Fisher-Yates shuffle
         public static int[] shuffleArray(int[] inArray)
@@ -215,52 +212,96 @@ namespace Quicksorts
             return inArray;
         }
 
-        // Recursive quicksort function, implementing 3-way partitioning
-        private static void Quicksort(int[] inArray, int left, int right)
+        // basic quicksort found online
+        private static void quickSort(int[] arr, int i, int j)
         {
-            if (right <= left) return;
-
-            int pivot = inArray[left];
-            int leftIndex = left + 1;
-            int rightIndex = right;
-            int temp;
-
-            int pivotValue = inArray[pivot];
-
-            while (leftIndex <= rightIndex)
+            if (i < j)
             {
-                if (inArray[leftIndex] < pivotValue)
-                {
-                    temp = inArray[pivot];
-                    inArray[pivot] = inArray[leftIndex];
-                    inArray[leftIndex] = temp;
-                    leftIndex++;
-                    pivot++;
-                }
-                else if (inArray[leftIndex] > pivotValue)
-                {
-                    temp = inArray[leftIndex];
-                    inArray[leftIndex] = inArray[rightIndex];
-                    inArray[rightIndex] = temp;
-                    rightIndex--;
-                }
-                else
-                {
-                    leftIndex++;
-                }
+                int pos = partition(arr, i, j);
+                quickSort(arr, i, pos - 1);
+                quickSort(arr, pos + 1, j);
             }
 
-            Quicksort(inArray, left, pivot - 1);
-            Quicksort(inArray, rightIndex + 1, right);
+        }
+
+        private static int partition(int[] arr, int i, int j)
+        {
+            int pivot = arr[j];
+            int small = i - 1;
+            for (int k = i; k < j; k++)
+            {
+                if (arr[k] <= pivot)
+                {
+                    small++;
+                    swap(arr, k, small);
+                }
+            }
+            swap(arr, j, small + 1);
+            return small + 1;
+        }
+
+        private static void swap(int[] arr, int k, int small)
+        {
+            int temp;
+            temp = arr[k];
+            arr[k] = arr[small];
+            arr[small] = temp;
         }
 
         static void Main(string[] args)
         {
-            randArray = new int[200];
+            //randArray = new int[200];
+            //sequentialArrayFill(randArray);
+            //shuffleArray(randArray);
+            //parallelSort(randArray);
+            //printArray(randArray);
+            int SIZE = 0;
+            Console.WriteLine("Input the number of elements in the array");
+            SIZE = Convert.ToInt32(Console.ReadLine());
+
+            randArray = new int[SIZE];
+            randArray2 = new int[SIZE];
+            randArray3 = new int[SIZE];
+
+            Console.WriteLine("Creating arrays");
             sequentialArrayFill(randArray);
             shuffleArray(randArray);
-            parallelSort(randArray);
-            printArray(randArray);
-        }
+            Array.Copy(randArray, randArray2, SIZE);
+            Array.Copy(randArray, randArray3, SIZE);
+            Console.WriteLine("Finished creating arrays");
+
+            Stopwatch stopwatch = new Stopwatch();
+
+            Console.WriteLine("Insertion sort start");
+            stopwatch.Reset();
+            stopwatch.Start();
+            insertionSort(randArray, 0, randArray.Length);
+            stopwatch.Stop();
+            Console.WriteLine("Time of Insertion Sort: {0}", stopwatch.ElapsedMilliseconds);
+
+            Console.WriteLine("Quicksort start");
+            stopwatch.Reset();
+            stopwatch.Start();
+            quickSort(randArray2,0,SIZE-1);
+            stopwatch.Stop();
+            Console.WriteLine("Time of QuickSort: {0}", stopwatch.ElapsedMilliseconds);
+
+            Console.WriteLine("Parallel sort start");
+            stopwatch.Reset();
+            stopwatch.Start();
+            parallelSort(randArray3);
+            stopwatch.Stop();
+            Console.WriteLine("Time of Parallel Sort: {0}", stopwatch.ElapsedMilliseconds);
+
+
+            Console.WriteLine("Press any key to print parallel array.");
+            Console.ReadKey();
+            printArray(randArray3);
+
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
+
     }
 }
+}
+
